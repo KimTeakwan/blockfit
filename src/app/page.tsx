@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import KindSelector, { SlotStatus } from "@/components/KindSelector";
 import DropMat from "@/components/DropMat";
 import CheckList from "@/components/CheckList";
@@ -9,6 +10,7 @@ import ManualChecklist from "@/components/ManualChecklist";
 import BeginnerGuide from "@/components/BeginnerGuide";
 import DressedCounter from "@/components/DressedCounter";
 import AutoFixPanel from "@/components/AutoFixPanel";
+import MatStatus from "@/components/MatStatus";
 import TemplateDownloadButtons from "@/components/TemplateDownloadButtons";
 import { DEFAULT_SKIN } from "@/config/avatar";
 import {
@@ -17,14 +19,16 @@ import {
   TEMPLATE_SIZE,
   UPLOAD_INFO,
 } from "@/config/clothing";
-import { detectFormat, ImageFormat } from "@/lib/fileSignature";
+import { detectFormat, ImageFormat, readDimensions } from "@/lib/fileSignature";
 import {
   CheckResult,
   DecodedImage,
+  TooLarge,
   decodeImage,
   isTemplateSize,
   runChecks,
 } from "@/lib/imageChecks";
+import { MAX_DECODE_PIXELS, MAX_FILE_BYTES, OPERATOR } from "@/config/site";
 import { Outfit, isOutfitEmpty } from "@/lib/outfit";
 import { fetchDressedCount, reportDressed } from "@/lib/counter";
 import { applyFix, fixedFileName, planFix } from "@/lib/autoFix";
@@ -58,6 +62,8 @@ interface Loaded {
   objectUrl: string;
   /** 자동으로 고친 파일이면 고치기 전 형식. 직접 올린 파일이면 null */
   fixedFrom: ImageFormat | null;
+  /** 너무 커서 열지 않은 파일이면 그 크기. 아니면 null */
+  tooLarge: TooLarge | null;
 }
 
 type Slots = Record<ClothingKind, Loaded | null>;
@@ -126,19 +132,35 @@ export default function HomePage() {
   const loadIntoSlot = useCallback(
     async (kind: ClothingKind, file: File, fixedFrom: ImageFormat | null) => {
       const format = await detectFormat(file);
-      let image: DecodedImage | null = null;
-      try {
-        image = await decodeImage(file);
-      } catch {
-        // 열 수 없는 파일은 검사 결과에서 "그림을 열 수 없어요"로 안내한다
-        image = null;
+
+      // 열기 전에 용량과 가로세로부터 본다. 너무 크면 기기가 멈출 수 있어 열지 않는다
+      let tooLarge: TooLarge | null = null;
+      if (file.size > MAX_FILE_BYTES) {
+        tooLarge = { bytes: file.size, width: null, height: null };
+      } else {
+        const dims = await readDimensions(file);
+        if (dims && dims.width * dims.height > MAX_DECODE_PIXELS) {
+          tooLarge = { bytes: file.size, width: dims.width, height: dims.height };
+        }
       }
+
+      let image: DecodedImage | null = null;
+      if (!tooLarge) {
+        try {
+          image = await decodeImage(file);
+        } catch {
+          // 열 수 없는 파일은 검사 결과에서 "그림을 열 수 없어요"로 안내한다
+          image = null;
+        }
+      }
+
       putSlot(kind, {
         fileName: file.name,
         format,
         image,
         objectUrl: URL.createObjectURL(file),
         fixedFrom,
+        tooLarge,
       });
     },
     [putSlot]
@@ -186,7 +208,12 @@ export default function HomePage() {
     for (const { kind } of CLOTHING_KINDS) {
       const loaded = slots[kind];
       result[kind] = loaded
-        ? runChecks({ kind, format: loaded.format, image: loaded.image })
+        ? runChecks({
+            kind,
+            format: loaded.format,
+            image: loaded.image,
+            tooLarge: loaded.tooLarge,
+          })
         : null;
     }
     return result;
@@ -294,6 +321,15 @@ export default function HomePage() {
               onFile={handleFile}
             />
 
+            <MatStatus
+              status={statuses[active]}
+              canAutoFix={
+                !!current &&
+                current.fixedFrom === null &&
+                planFix(active, current.format, current.image).steps.length > 0
+              }
+            />
+
             {active !== "tshirt" && (
               <p className="mat-legend">
                 위쪽 가운데 칸들은 몸통이에요. 아래 왼쪽 칸들은{" "}
@@ -357,7 +393,9 @@ export default function HomePage() {
 
             {current && currentResults ? (
               <>
-                <h2 className="section-title">{selected?.label} 검사 결과</h2>
+                <h2 className="section-title results-anchor" id="results">
+                  {selected?.label} 검사 결과
+                </h2>
                 <AutoFixPanel
                   plan={planFix(active, current.format, current.image)}
                   fixedFrom={current.fixedFrom}
@@ -397,6 +435,12 @@ export default function HomePage() {
       </main>
 
       <footer className="footer">
+        <p className="footer-links">
+          <Link href="/privacy">개인정보처리방침</Link>
+          {OPERATOR.email && (
+            <a href={`mailto:${OPERATOR.email}`}>문의하기</a>
+          )}
+        </p>
         <p>
           블록핏은 로블록스와 관련 없는 비공식 도구예요. Roblox는 Roblox
           Corporation의 상표예요.

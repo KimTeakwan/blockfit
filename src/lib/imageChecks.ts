@@ -8,6 +8,7 @@ import {
   findPanel,
 } from "@/config/clothing";
 import { ImageFormat } from "@/lib/fileSignature";
+import { MAX_DECODE_PIXELS } from "@/config/site";
 
 /**
  * 업로드 전 검사.
@@ -44,7 +45,15 @@ export interface DecodedImage {
   pixels: ImageData | null;
 }
 
-const MAX_ANALYZE_PIXELS = 16_000_000;
+/**
+ * 열지 않고 걸러낸 너무 큰 파일.
+ * 가로세로를 읽었으면 크기가, 못 읽었으면 용량만 들어 있다.
+ */
+export interface TooLarge {
+  bytes: number;
+  width: number | null;
+  height: number | null;
+}
 
 export async function decodeImage(file: File): Promise<DecodedImage> {
   const bitmap = await createImageBitmap(file, {
@@ -54,7 +63,7 @@ export async function decodeImage(file: File): Promise<DecodedImage> {
   const { width, height } = bitmap;
 
   let pixels: ImageData | null = null;
-  if (width * height <= MAX_ANALYZE_PIXELS) {
+  if (width * height <= MAX_DECODE_PIXELS) {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
@@ -105,8 +114,9 @@ export function runChecks(args: {
   kind: ClothingKind;
   format: ImageFormat;
   image: DecodedImage | null;
+  tooLarge?: TooLarge | null;
 }): CheckResult[] {
-  const { kind, format, image } = args;
+  const { kind, format, image, tooLarge } = args;
   const results: CheckResult[] = [];
 
   // 1. 파일 종류
@@ -138,6 +148,12 @@ export function runChecks(args: {
         "파일 이름 끝만 .png로 바꾸면 안 돼요. 꼭 새로 저장해야 해요.",
       ],
     });
+  }
+
+  // 너무 큰 파일은 기기가 멈추지 않게 열지 않았으므로 여기서 멈춘다
+  if (tooLarge) {
+    results.push(tooLargeResult(tooLarge));
+    return results;
   }
 
   if (!image) {
@@ -175,6 +191,25 @@ export function runChecks(args: {
   }
 
   return results;
+}
+
+function tooLargeResult(tooLarge: TooLarge): CheckResult {
+  const mb = (tooLarge.bytes / (1024 * 1024)).toFixed(1);
+  const title =
+    tooLarge.width && tooLarge.height
+      ? `그림이 너무 커요 (${tooLarge.width} × ${tooLarge.height})`
+      : `파일이 너무 커요 (${mb}MB)`;
+
+  return {
+    id: "too-large",
+    status: "fail",
+    title,
+    detail: `옷 그림은 셔츠·바지가 ${W} × ${H}, 티셔츠가 ${TSHIRT_RECOMMENDED} × ${TSHIRT_RECOMMENDED} 정도예요. 너무 큰 그림은 오래된 기기에서 멈출 수 있어서 열지 않았어요. 사진첩의 사진을 잘못 고른 건 아닌지 확인해주세요.`,
+    fix: [
+      "옷 그림 파일을 다시 골라요.",
+      "직접 그린 옷이라면 그림 프로그램에서 크기를 줄여서 저장해요.",
+    ],
+  };
 }
 
 function checkTemplateSize(image: DecodedImage): CheckResult {

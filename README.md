@@ -39,6 +39,38 @@ three.js가 이미 들어가 있어서 3D 파일을 읽는 것 자체는 어렵�
 
 이 규칙은 `src/lib/outfit.ts` 한 곳에 있고, 3D 모형과 대체용 앞/뒤 그림이 같이 쓴다.
 
+## 출시 전에 채울 것
+
+`src/config/site.ts`의 `OPERATOR`에 운영자 이름과 문의 이메일을 넣는다.
+개인정보처리방침과 바닥글의 "문의하기"에 쓰인다. 비어 있으면 연락처 대신 "준비 중"이 나간다.
+
+## 개인정보처리방침
+
+`/privacy`. 실제로 하는 것만 적었다(회원가입 없음, 그림 전송 없음, 쿠키 없음,
+꾸민 인원 장난 방지용 해시 값 1시간 보관, 호스팅 접속 기록, 기기 저장소의 "이미 셌음" 표시).
+광고나 분석 도구를 붙이는 등 **기능이 바뀌면 방침도 같이 고치고** `PRIVACY_EFFECTIVE_DATE`를 바꾼다.
+
+## 링크 카드 (카톡 미리보기)
+
+`src/app/opengraph-image.png`(1200 × 630)를 Next.js가 자동으로 링크 카드 그림으로 쓴다.
+한글 글꼴이 깨질 위험을 없애려고 서버에서 매번 그리지 않고 미리 만든 그림을 둔다.
+사이트 주소는 Vercel이 알려주는 대표 주소를 자동으로 쓰고, 도메인을 사면
+환경변수 `NEXT_PUBLIC_SITE_URL`에 그 주소를 넣는다.
+
+카톡은 링크 카드를 한동안 저장해둔다. 그림이나 제목을 바꿨는데 예전 카드가 나오면
+카카오 개발자 사이트의 공유 디버거에서 해당 주소의 캐시를 지운다.
+
+## 너무 큰 파일
+
+그림을 열기 전에 파일 머리만 읽어서 가로세로를 확인한다(`readDimensions`, PNG·JPG·WebP).
+2400만 화소 사진 같은 걸 통째로 열면 오래된 기기가 멈출 수 있어서, 기준을 넘으면 열지 않고 알려준다.
+기준은 `src/config/site.ts`의 `MAX_FILE_BYTES`(용량), `MAX_DECODE_PIXELS`(화소 수).
+
+## 결과 한 줄
+
+휴대폰에서는 검사 결과가 3D 모형 아래라 한참 내려야 보인다.
+초록 판 바로 아래에 결과를 한 줄로 요약하고 "결과 보러 가기"를 둔다(`MatStatus.tsx`).
+
 ## 자동으로 고치기
 
 확실하게 고칠 수 있는 것만 고친다. 로직은 `src/lib/autoFix.ts`.
@@ -138,10 +170,13 @@ src/
     AutoFixPanel.tsx      자동으로 고치기 안내와 고친 파일 받기
     TemplateDownloadButtons.tsx  한국어 옷 본 받기
     SkinPicker.tsx        모형 피부색 고르기
+    MatStatus.tsx         초록 판 아래 결과 한 줄
   lib/counter.ts          꾸민 인원 읽기·올리기 (한 기기 한 번)
   config/site.ts          사이트 운영 설정 (인원 표시 최소 숫자)
   app/
     api/count/route.ts    꾸민 인원 저장소 연결 (Upstash Redis)
+    privacy/page.tsx      개인정보처리방침
+    opengraph-image.png   링크 카드 그림 (twitter-image.png도 같은 그림)
     page.tsx              화면 조립
     layout.tsx            메타데이터, 글꼴
     globals.css           디자인 토큰과 레이아웃

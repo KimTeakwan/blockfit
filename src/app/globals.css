@@ -488,6 +488,47 @@ a {
   color: var(--ink-soft);
 }
 
+/* ---------- 초록 판 아래 결과 한 줄 ---------- */
+
+/*
+ * 휴대폰에서는 검사 결과가 한참 아래에 있어서, 파일을 올린 자리에서 바로
+ * 결과를 알려주고 결과로 가는 길을 준다. 상태는 색과 글자로 함께 보여준다.
+ */
+.mat-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 12px 0 0;
+  padding: 6px 14px;
+  border-left: 4px solid var(--pass);
+  border-radius: 0 10px 10px 0;
+  background: #fff;
+  font-weight: 500;
+}
+
+.mat-status[data-status="warn"] {
+  border-left-color: var(--warn);
+}
+
+.mat-status[data-status="fail"] {
+  border-left-color: var(--fail);
+}
+
+.mat-status-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--mat);
+  font-weight: 700;
+}
+
+/* "결과 보러 가기"로 내려왔을 때 제목이 화면 끝에 붙지 않게 한다 */
+.results-anchor {
+  scroll-margin-top: 16px;
+}
+
 /* ---------- 공용 버튼 ---------- */
 
 .button-primary,
@@ -948,7 +989,93 @@ a {
   white-space: nowrap;
 }
 
+/* ---------- 개인정보처리방침 ---------- */
+
+.brand-link {
+  text-decoration: none;
+}
+
+.legal {
+  max-width: 44rem;
+  padding-top: 28px;
+}
+
+.legal-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  margin: 0 0 6px;
+}
+
+.legal-meta {
+  margin: 0 0 24px;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+
+.legal h2 {
+  font-size: 1.125rem;
+  margin: 32px 0 10px;
+}
+
+.legal p {
+  margin: 0 0 10px;
+}
+
+.legal ul {
+  margin: 0 0 10px;
+  padding-left: 1.2em;
+}
+
+.legal li {
+  margin-bottom: 6px;
+}
+
+.legal-summary {
+  padding: 18px 20px;
+  border-left: 4px solid var(--mat);
+  border-radius: 0 10px 10px 0;
+  background: #fff;
+}
+
+.legal-summary h2 {
+  margin-top: 0;
+}
+
+.legal-table {
+  width: 100%;
+  margin: 12px 0 14px;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.legal-table th,
+.legal-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.legal-table th {
+  font-weight: 700;
+}
+
+.legal-back {
+  margin-top: 40px;
+}
+
 /* ---------- 바닥글 ---------- */
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+.footer-links a {
+  color: var(--ink-soft);
+}
 
 .footer {
   margin-top: 56px;
@@ -1001,6 +1128,11 @@ a {
 
   .avatar-canvas {
     height: 300px;
+  }
+
+  .legal-table {
+    display: block;
+    overflow-x: auto;
   }
 }
 
