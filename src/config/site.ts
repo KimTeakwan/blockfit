@@ -24,9 +24,9 @@ export const SHARE_TEXT = "로블록스 옷, 올리기 전에 블록핏에서 �
  */
 export const OPERATOR = {
   /** 운영자 이름 또는 활동명. 예: "김OO" */
-  name: "",
+  name: "블록핏사장",
   /** 문의를 받을 이메일. 예: "blockfit.help@gmail.com" */
-  email: "",
+  email: "xorhks4551@naver.com",
 };
 
 /** 개인정보처리방침 시행일. 방침을 고칠 때마다 바꾼다 */
