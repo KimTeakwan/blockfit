@@ -1,0 +1,1012 @@
+/*
+ * 블록핏 스타일
+ *
+ * 디자인 원칙: 강조는 커팅매트 한 곳에만 준다.
+ * 옷 재단에 쓰는 초록 매트와 초크 노랑 치수선이 이 도구의 얼굴이고,
+ * 나머지 화면은 종이처럼 조용하게 둔다.
+ */
+
+:root {
+  --mat: #1f5c46;
+  --mat-deep: #174736;
+  --mat-check-a: #22644c;
+  --mat-check-b: #1a5240;
+  --mat-line: rgba(255, 255, 255, 0.1);
+  --mat-line-major: rgba(255, 255, 255, 0.22);
+  --chalk: #f2c94c;
+  --paper: #f3f5f2;
+  --ink: #1c2321;
+  --ink-soft: #56615c;
+  --rule: #d6dcd7;
+  --pass: #2b7a55;
+  --warn: #9a5a00;
+  --fail: #b3302a;
+
+  --font-display: "Black Han Sans", "Apple SD Gothic Neo", sans-serif;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic",
+    sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* iOS는 16px보다 작은 입력창에 포커스가 가면 화면을 확대한다 */
+button,
+input {
+  font-family: inherit;
+  font-size: 16px;
+}
+
+a {
+  color: var(--mat);
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--chalk);
+  outline-offset: 2px;
+}
+
+/* ---------- 페이지 뼈대 ---------- */
+
+.site {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 20px 20px 56px;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--mat);
+  margin: 0;
+}
+
+.brand-note {
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.hero {
+  padding: 32px 0 24px;
+  max-width: 38rem;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.125rem, 7vw, 3.5rem);
+  line-height: 1.12;
+  margin: 0 0 16px;
+  letter-spacing: -0.01em;
+}
+
+.hero-text {
+  margin: 0 0 8px;
+  color: var(--ink-soft);
+}
+
+/* 꾸민 인원. 매트와 같은 초록으로 두어 사이트의 얼굴과 이어지게 한다 */
+.counter {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 12px 0 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--mat);
+  color: #fff;
+  font-size: 0.9375rem;
+}
+
+.counter-value {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  color: var(--chalk);
+  font-variant-numeric: tabular-nums;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+/* ---------- 옷 종류 선택 ---------- */
+
+.kind {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.kind-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 56px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--rule);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.kind-option[aria-checked="true"] {
+  border-color: var(--mat);
+  background: var(--mat);
+  color: #fff;
+}
+
+.kind-label {
+  font-weight: 700;
+}
+
+.kind-covers {
+  font-size: 0.8125rem;
+  opacity: 0.8;
+}
+
+.kind-hint {
+  margin: 0 0 10px;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+
+.kind-label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+}
+
+/* 공식 이름 옆의 쉬운 이름. 공식 이름보다 한 단계 약하게 둔다 */
+.kind-alias {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+/* 파일을 올린 칸에 작은 초크색 점을 찍는다 */
+.kind-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chalk);
+  box-shadow: 0 0 0 1.5px var(--mat);
+}
+
+/* 선택되지 않은 탭에서만 상태 색을 입힌다. 선택된 탭은 초록 바탕이라 흰 글자를 유지한다 */
+.kind-option[aria-checked="false"][data-status="pass"] .kind-covers {
+  color: var(--pass);
+  opacity: 1;
+  font-weight: 500;
+}
+
+.kind-option[aria-checked="false"][data-status="warn"] .kind-covers {
+  color: var(--warn);
+  opacity: 1;
+  font-weight: 500;
+}
+
+.kind-option[aria-checked="false"][data-status="fail"] .kind-covers {
+  color: var(--fail);
+  opacity: 1;
+  font-weight: 500;
+}
+
+/* ---------- 작업 영역 ---------- */
+
+.workspace {
+  display: grid;
+  gap: 32px;
+}
+
+@media (min-width: 960px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    align-items: start;
+  }
+}
+
+/* ---------- 커팅매트 ---------- */
+
+.mat {
+  position: relative;
+  padding: 40px 18px 18px 40px;
+  border-radius: 16px;
+  background-color: var(--mat);
+  background-image:
+    linear-gradient(var(--mat-line-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mat-line-major) 1px, transparent 1px),
+    linear-gradient(var(--mat-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mat-line) 1px, transparent 1px);
+  background-size:
+    80px 80px,
+    80px 80px,
+    16px 16px,
+    16px 16px;
+}
+
+.mat-ruler {
+  position: absolute;
+  color: var(--chalk);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.mat-ruler-top {
+  top: 12px;
+  left: 40px;
+  right: 18px;
+  text-align: center;
+  border-bottom: 1px solid rgba(242, 201, 76, 0.5);
+  line-height: 1.2;
+  padding-bottom: 4px;
+}
+
+.mat-ruler-side {
+  top: 40px;
+  bottom: 18px;
+  left: 10px;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  border-left: 1px solid rgba(242, 201, 76, 0.5);
+}
+
+.mat-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 585 / 559;
+  border: 2px dashed rgba(242, 201, 76, 0.75);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.mat-canvas[data-kind="tshirt"] {
+  aspect-ratio: 1 / 1;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.mat-canvas[data-dragging="true"] {
+  border-style: solid;
+  border-color: var(--chalk);
+  background: rgba(242, 201, 76, 0.1);
+}
+
+/* 파일을 올리면 투명한 부분이 체커 무늬로 보이게 한다 */
+.mat-canvas[data-loaded="true"] {
+  border-style: solid;
+  background-color: var(--mat-check-a);
+  background-image:
+    linear-gradient(45deg, var(--mat-check-b) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--mat-check-b) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--mat-check-b) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--mat-check-b) 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+}
+
+.mat-empty {
+  text-align: center;
+  color: #fff;
+  padding: 16px;
+}
+
+.mat-empty-main {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  margin: 0 0 6px;
+}
+
+.mat-empty-sub {
+  margin: 0;
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.mat-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.mat-panel {
+  position: absolute;
+  border: 1.5px dashed var(--chalk);
+  pointer-events: none;
+}
+
+.mat-panel-label {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--chalk);
+  background: rgba(23, 71, 54, 0.85);
+}
+
+.mat-legend {
+  margin: 12px 0 0;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.mat-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.toggle input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--mat);
+}
+
+.text-button {
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--mat);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ---------- 입혀본 모습 ---------- */
+
+.avatar-stage {
+  margin-bottom: 32px;
+}
+
+/*
+ * 모형 자리는 조용하게 둔다. 강조는 매트에만 준다.
+ * 발밑의 옅은 그림자로 모형이 바닥에 서 있는 느낌만 준다.
+ */
+.avatar-canvas {
+  position: relative;
+  width: 100%;
+  height: 340px;
+  border-radius: 12px;
+  background:
+    radial-gradient(
+      ellipse 26% 5% at 50% 89%,
+      rgba(28, 35, 33, 0.2),
+      transparent 70%
+    ),
+    #e6ebe7;
+  overflow: hidden;
+}
+
+.avatar-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.avatar-view {
+  min-width: 56px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--rule);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.avatar-view[aria-pressed="true"] {
+  border-color: var(--mat);
+  background: var(--mat);
+  color: #fff;
+}
+
+.avatar-views-hint {
+  margin: 6px 0 0;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+
+.avatar-note {
+  margin: 10px 0 0;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+
+.avatar-fallback {
+  margin: 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: #e6ebe7;
+  color: var(--ink-soft);
+}
+
+/* ---------- 공용 버튼 ---------- */
+
+.button-primary,
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button-primary {
+  border: none;
+  background: var(--mat);
+  color: #fff;
+}
+
+.button-secondary {
+  border: 1.5px solid var(--mat);
+  background: #fff;
+  color: var(--mat);
+}
+
+.button-primary:disabled,
+.button-secondary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ---------- 자동으로 고치기 ---------- */
+
+.autofix {
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border: 1.5px solid var(--chalk);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.autofix-done {
+  border-color: var(--pass);
+}
+
+.autofix-title {
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.autofix-steps {
+  margin: 0 0 12px;
+  padding-left: 1.2em;
+}
+
+.autofix-note {
+  margin: 0 0 12px;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- 한국어 옷 본 받기 ---------- */
+
+.mat-help {
+  margin-top: 4px;
+}
+
+.template-download {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+/* ---------- 피부색 ---------- */
+
+.skin {
+  margin-top: 16px;
+}
+
+.skin-label {
+  margin: 0 0 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.skin-current {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.skin-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* 손가락으로 누르기 충분한 크기. 고른 색은 초록 테두리로 표시한다 */
+.skin-swatch {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--rule);
+  cursor: pointer;
+}
+
+.skin-swatch[aria-checked="true"] {
+  box-shadow: 0 0 0 3px var(--mat);
+}
+
+/* ---------- 친구에게 보여주기 ---------- */
+
+.share {
+  margin-top: 18px;
+}
+
+.share-note {
+  margin: 8px 0 0;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- 검사 결과 ---------- */
+
+.report-summary {
+  padding: 4px 0 16px 16px;
+  border-left: 4px solid var(--pass);
+  margin-bottom: 8px;
+}
+
+.report-summary[data-status="warn"] {
+  border-left-color: var(--warn);
+}
+
+.report-summary[data-status="fail"] {
+  border-left-color: var(--fail);
+}
+
+.report-headline {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  line-height: 1.4;
+}
+
+.report-sub {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.check {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.check-status {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--pass);
+}
+
+.check[data-status="warn"] .check-status {
+  color: var(--warn);
+}
+
+.check[data-status="fail"] .check-status {
+  color: var(--fail);
+}
+
+/* 긴 문장이 격자 칸을 밀어내 가로로 넘치지 않게 한다 */
+.check-body {
+  min-width: 0;
+}
+
+.check-title {
+  margin: 0;
+  font-weight: 500;
+}
+
+.check-fix {
+  margin-top: 8px;
+}
+
+.check-fix summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--mat);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.check-fix ol {
+  margin: 4px 0 0;
+  padding-left: 1.3em;
+  font-size: 0.9375rem;
+}
+
+.check-fix li {
+  margin-bottom: 4px;
+}
+
+.check-detail {
+  margin: 4px 0 0;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+
+.waiting-list {
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--ink-soft);
+}
+
+.waiting-list li {
+  margin-bottom: 4px;
+}
+
+/* ---------- 미리보기 ---------- */
+
+.figures {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.figure {
+  margin: 0;
+  text-align: center;
+}
+
+.figure canvas {
+  display: block;
+  width: 128px;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.figure figcaption {
+  margin-top: 6px;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- 직접 확인할 것 ---------- */
+
+.manual {
+  margin-top: 32px;
+}
+
+.manual-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.manual-item {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.manual-item input {
+  width: 20px;
+  height: 20px;
+  margin-top: 3px;
+  accent-color: var(--mat);
+}
+
+.manual-label {
+  display: block;
+  font-weight: 500;
+}
+
+.manual-hint {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.manual-foot {
+  margin: 12px 0 0;
+  font-size: 0.9375rem;
+}
+
+/* ---------- 규격 안내 ---------- */
+
+.guide {
+  margin-top: 56px;
+  padding-top: 28px;
+  border-top: 1px solid var(--rule);
+  max-width: 40rem;
+}
+
+.guide-block {
+  margin-bottom: 40px;
+}
+
+.guide-text,
+.guide-link {
+  color: var(--ink-soft);
+  margin: 0 0 12px;
+}
+
+/* ---------- 만드는 순서 ---------- */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step;
+}
+
+.step {
+  position: relative;
+  counter-increment: step;
+  padding: 0 0 18px 48px;
+}
+
+/* 번호를 블록 모양으로 만들어 블록 아바타 주제와 맞춘다 */
+.step::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--mat);
+  color: var(--chalk);
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+}
+
+/* 단계 사이를 세로선으로 이어 순서가 있다는 걸 보여준다 */
+.step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 36px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--rule);
+}
+
+.step-title {
+  margin: 4px 0 2px;
+  font-weight: 700;
+}
+
+.step-body {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+/* ---------- 안전하게 하기 ---------- */
+
+.safety {
+  padding: 18px 20px;
+  border-left: 4px solid var(--warn);
+  background: #fff;
+  border-radius: 0 10px 10px 0;
+}
+
+.safety-list {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.safety-list li {
+  margin-bottom: 8px;
+}
+
+.safety-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- 어려운 말 풀이 ---------- */
+
+.words {
+  margin: 0;
+}
+
+.word {
+  padding: 12px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.word dt {
+  font-weight: 700;
+}
+
+.word dd {
+  margin: 2px 0 0;
+  color: var(--ink-soft);
+}
+
+/* ---------- 자주 묻는 질문 ---------- */
+
+.faq-item {
+  border-top: 1px solid var(--rule);
+}
+
+.faq-item summary {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 8px 0;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.faq-item p {
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+}
+
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 16px;
+  font-size: 0.9375rem;
+}
+
+.spec-table th,
+.spec-table td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.spec-table th {
+  font-weight: 700;
+}
+
+.spec-table td:first-child {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- 바닥글 ---------- */
+
+.footer {
+  margin-top: 56px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+
+.footer p {
+  margin: 0 0 6px;
+}
+
+/* ---------- 좁은 화면 ---------- */
+
+@media (max-width: 600px) {
+  .site {
+    padding: 16px 14px 48px;
+  }
+
+  .brand {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .mat {
+    padding: 34px 10px 10px 30px;
+  }
+
+  .mat-ruler-top {
+    top: 10px;
+    left: 30px;
+    right: 10px;
+  }
+
+  .mat-ruler-side {
+    top: 34px;
+    bottom: 10px;
+    left: 6px;
+  }
+
+  .kind-option {
+    flex: 1 1 0;
+    padding: 8px 10px;
+  }
+
+  .figure canvas {
+    width: 112px;
+  }
+
+  .avatar-canvas {
+    height: 300px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
