@@ -117,7 +117,12 @@ export async function POST(request: Request) {
   try {
     const rateKey = RATE_PREFIX + (await requesterKey(request));
     const hits = toCount(await redis(config, ["INCR", rateKey]));
-    if (hits === 1) {
+    // 처음 셀 때 만료 시간을 건다. 그때 만료 설정이 실패했으면 키가 영영 남아
+    // 그 주소에서는 다시 셀 수 없게 되므로, 다음 요청에서 만료가 없는지(-1) 보고 다시 건다
+    if (
+      hits === 1 ||
+      (await redis(config, ["TTL", rateKey])) === -1
+    ) {
       await redis(config, ["EXPIRE", rateKey, RATE_WINDOW_SECONDS]);
     }
 

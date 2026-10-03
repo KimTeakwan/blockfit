@@ -46,6 +46,9 @@ body {
   font-size: 16px;
   line-height: 1.6;
   -webkit-text-size-adjust: 100%;
+  /* 한글이 단어 중간("틀/린")에서 끊기지 않게 띄어쓰기 단위로 줄을 바꾼다 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* iOS는 16px보다 작은 입력창에 포커스가 가면 화면을 확대한다 */
@@ -96,8 +99,8 @@ a {
 }
 
 .hero {
-  padding: 32px 0 24px;
-  max-width: 38rem;
+  padding: 28px 0 20px;
+  max-width: 40rem;
 }
 
 .hero-title {
@@ -110,8 +113,36 @@ a {
 }
 
 .hero-text {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   color: var(--ink-soft);
+}
+
+/* 블록핏의 약속 세 가지. 문장으로 길게 쓰는 대신 짧은 꼬리표로 보여준다 */
+.hero-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-points li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.hero-points li::before {
+  content: "✓";
+  color: var(--pass);
+  font-weight: 700;
 }
 
 /* 꾸민 인원. 매트와 같은 초록으로 두어 사이트의 얼굴과 이어지게 한다 */
@@ -172,10 +203,6 @@ a {
   color: #fff;
 }
 
-.kind-label {
-  font-weight: 700;
-}
-
 .kind-covers {
   font-size: 0.8125rem;
   opacity: 0.8;
@@ -188,6 +215,7 @@ a {
 }
 
 .kind-label {
+  font-weight: 700;
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
@@ -335,6 +363,11 @@ a {
     -8px 0;
 }
 
+/* 열지 못한 파일. 올라가긴 했다는 걸 실선 테두리로 보여준다 */
+.mat-canvas[data-unopened="true"] {
+  border-style: solid;
+}
+
 .mat-empty {
   text-align: center;
   color: #fff;
@@ -351,6 +384,14 @@ a {
   margin: 0;
   font-size: 0.875rem;
   opacity: 0.8;
+}
+
+/* 긴 파일 이름이 판 밖으로 넘치지 않게 아무 데서나 줄을 바꾼다 */
+.mat-file-name {
+  margin: 0 0 10px;
+  color: var(--chalk);
+  font-weight: 500;
+  overflow-wrap: anywhere;
 }
 
 .mat-image {
@@ -576,6 +617,14 @@ a {
   border-color: var(--pass);
 }
 
+.autofix-blocked {
+  border-color: var(--rule);
+}
+
+.autofix-blocked .autofix-note {
+  margin-bottom: 0;
+}
+
 .autofix-title {
   margin: 0 0 6px;
   font-weight: 700;
@@ -596,6 +645,19 @@ a {
 
 .mat-help {
   margin-top: 4px;
+}
+
+/* 샘플 옷 버튼과 옷 본 받기 버튼을 한 줄에 둔다 */
+.mat-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.mat-actions .template-download {
+  margin: 0;
 }
 
 .template-download {
@@ -829,6 +891,81 @@ a {
 .manual-foot {
   margin: 12px 0 0;
   font-size: 0.9375rem;
+}
+
+/* ---------- 확인하는 방법 비교 ---------- */
+
+.compare {
+  margin-top: 56px;
+  padding-top: 28px;
+  border-top: 1px solid var(--rule);
+}
+
+.compare-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 760px) {
+  .compare-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.compare-card {
+  padding: 16px 18px;
+  border: 1.5px solid var(--rule);
+  border-radius: 12px;
+  background: #fff;
+}
+
+/* 블록핏 카드만 초록 테두리로 구분한다. 바탕은 다른 카드와 같게 두어 강조를 과하게 하지 않는다 */
+.compare-card[data-ours="true"] {
+  border: 2px solid var(--mat);
+}
+
+.compare-name {
+  margin: 0 0 10px;
+  font-weight: 700;
+}
+
+.compare-card[data-ours="true"] .compare-name {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.25rem;
+  color: var(--mat);
+}
+
+.compare-rows {
+  margin: 0;
+}
+
+.compare-rows > div {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9375rem;
+}
+
+.compare-rows dt {
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.compare-rows dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.compare-note {
+  margin: 12px 0 0;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
 }
 
 /* ---------- 규격 안내 ---------- */
@@ -1099,6 +1236,36 @@ a {
   .brand {
     flex-direction: column;
     gap: 2px;
+    padding-bottom: 12px;
+  }
+
+  /* 휴대폰 첫 화면에 초록 판이 들어오도록 소개 부분을 줄인다 */
+  .hero {
+    padding: 18px 0 14px;
+  }
+
+  .hero-title {
+    font-size: 1.875rem;
+    margin-bottom: 10px;
+  }
+
+  .hero-text {
+    font-size: 0.9375rem;
+    margin-bottom: 10px;
+  }
+
+  .counter {
+    margin-top: 10px;
+    padding: 6px 14px;
+  }
+
+  .kind-hint {
+    font-size: 0.875rem;
+    margin-bottom: 8px;
+  }
+
+  .kind {
+    margin-bottom: 14px;
   }
 
   .mat {

@@ -60,6 +60,18 @@ three.js가 이미 들어가 있어서 3D 파일을 읽는 것 자체는 어렵�
 카톡은 링크 카드를 한동안 저장해둔다. 그림이나 제목을 바꿨는데 예전 카드가 나오면
 카카오 개발자 사이트의 공유 디버거에서 해당 주소의 캐시를 지운다.
 
+## 검색 노출
+
+- `robots.txt`, `sitemap.xml`은 `src/app/robots.ts`, `src/app/sitemap.ts`가 만든다.
+  페이지를 새로 만들면 `sitemap.ts`에 추가한다.
+- 사이트 주소는 `src/lib/siteUrl.ts` 한 곳에서 정한다(링크 카드, robots, sitemap이 같이 쓴다).
+- 첫 화면에는 검색엔진용 데이터(JSON-LD)로 "무료 웹 도구"와 자주 묻는 질문을 넣는다
+  (`StructuredData.tsx`). FAQ는 화면의 "자주 묻는 질문"과 같은 데이터라 둘이 어긋나지 않는다.
+- 개인정보처리방침의 대표 주소(canonical)는 `/privacy`로 따로 둔다.
+  레이아웃의 "/"를 물려받으면 첫 화면의 복사본으로 취급된다.
+- 배포 후 [Google Search Console](https://search.google.com/search-console)과
+  [네이버 서치어드바이저](https://searchadvisor.naver.com)에 사이트를 등록하고 sitemap.xml을 제출한다.
+
 ## 너무 큰 파일
 
 그림을 열기 전에 파일 머리만 읽어서 가로세로를 확인한다(`readDimensions`, PNG·JPG·WebP).
@@ -70,6 +82,22 @@ three.js가 이미 들어가 있어서 3D 파일을 읽는 것 자체는 어렵�
 
 휴대폰에서는 검사 결과가 3D 모형 아래라 한참 내려야 보인다.
 초록 판 바로 아래에 결과를 한 줄로 요약하고 "결과 보러 가기"를 둔다(`MatStatus.tsx`).
+그래서 첫 화면 소개도 짧게 둔다. 휴대폰 첫 화면에 초록 판이 들어와야 한다.
+
+## 샘플 옷과 붙여넣기
+
+옷 그림이 아직 없는 첫 방문자도 바로 입혀보는 모습을 보게 "샘플 옷 입혀보기"를 둔다.
+샘플은 공식 그림을 쓰지 않고 칸 위치 숫자만으로 브라우저에서 그린다(`src/lib/sampleOutfit.ts`).
+셔츠와 바지 모두 검사를 통과하는 좋은 예로 만들고, 몸통 가로줄을 앞·옆·뒤 같은 높이에 그려
+돌려보면 이음매가 맞는 게 보이게 했다. 모든 칸이 비어 있을 때만 버튼이 나온다.
+샘플만 입혀본 건 꾸민 인원으로 세지 않는다.
+
+컴퓨터에서는 그림을 복사해 Ctrl+V로 붙여넣으면 지금 고른 칸에 올라간다.
+
+## 확인하는 방법 비교
+
+도구 아래에 "바로 올리기 / 스튜디오 / 블록핏"을 비용, 준비, 검사로 비교한다(`CompareMethods.tsx`).
+사실만 쓰고, 게임 속 모습과 가장 비슷한 건 스튜디오라서 마지막 확인은 스튜디오를 권한다.
 
 ## 자동으로 고치기
 
@@ -104,7 +132,7 @@ three.js가 이미 들어가 있어서 3D 파일을 읽는 것 자체는 어렵�
 ## 꾸민 인원 세기
 
 첫 화면에 "현재까지 아바타를 꾸민 인원"을 보여준다.
-모형에 처음으로 옷이 입혀지는 순간, 한 기기에서 한 번만 센다.
+모형에 처음으로 옷이 입혀지는 순간, 한 기기에서 한 번만 센다. 샘플 옷만 입혀본 건 세지 않는다.
 
 - 보내는 건 "숫자 하나 올려주세요" 요청뿐이다. 그림이나 개인정보는 보내지 않는다.
 - 기기 단위라 대략적인 값이다. 휴대폰과 컴퓨터로 하면 두 번, 브라우저 기록을 지우면 다시 센다.
@@ -118,13 +146,21 @@ three.js가 이미 들어가 있어서 3D 파일을 읽는 것 자체는 어렵�
 1. Vercel 프로젝트 > **Storage** > **Create Database** > **Upstash for Redis**(Redis)
 2. 무료 요금제로 만들고 이 프로젝트에 **Connect**
 3. 접속 정보(환경변수)가 자동으로 들어간다. **다시 배포(Redeploy)** 해야 적용된다
-4. 로컬에서 확인하려면 `vercel env pull .env.local` (없으면 `.env.local.example` 참고)
+4. 로컬에서 확인하려면 `vercel env pull .env.local`.
+   직접 넣는다면 `KV_REST_API_URL`, `KV_REST_API_TOKEN`
+   (또는 `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)을 `.env.local`에 적는다
 
-## 출시 전 좌표 검증 (필수)
+## 좌표 검증
 
 `src/config/clothing.ts`의 패널 좌표는 공식 문서에 숫자로 나와 있지 않다.
-패널 **크기**는 공식 문서와 일치하지만, **위치**는 직접 확인해야 한다.
 좌표가 틀리면 미리보기와 "비어 있는 패널" 검사가 엉뚱하게 나온다.
+
+**2026년 10월 검증 완료.** 공식 템플릿 zip의 셔츠·바지 PNG에서 칸마다 칠해진 색 영역을
+픽셀 단위로 재서 36칸 모두 x, y, 가로, 세로가 정확히 일치함을 확인했다.
+칸 이름(FRONT/BACK/R/L/U/D/F/B)도 같은 자리이고, 3D 모형의 면 방향도
+three.js 상자 규칙과 맞물린다(오른팔이 -x, 앞면 오른쪽 끝이 모형의 왼쪽 면과 이어짐).
+
+로블록스가 템플릿을 바꾸면 아래 순서로 다시 확인한다.
 
 1. [공식 문서](https://create.roblox.com/docs/avatar/classic-clothing)에서
    템플릿 zip을 받아 압축을 푼다.
@@ -159,6 +195,8 @@ src/
   lib/templateImage.ts    한국어 옷 본 그리기
   lib/shareCard.ts        공유용 사진 만들기와 공유 창
   lib/download.ts         내려받기, 글꼴 준비 공용 함수
+  lib/sampleOutfit.ts     샘플 셔츠·바지 그리기
+  lib/siteUrl.ts          사이트 전체 주소 (서버 전용)
   config/avatar.ts        피부색 목록
   components/
     KindSelector.tsx      셔츠·바지·티셔츠 칸 선택과 칸별 상태
@@ -171,11 +209,14 @@ src/
     TemplateDownloadButtons.tsx  한국어 옷 본 받기
     SkinPicker.tsx        모형 피부색 고르기
     MatStatus.tsx         초록 판 아래 결과 한 줄
+    CompareMethods.tsx    확인하는 방법 비교
+    StructuredData.tsx    검색엔진용 데이터 (JSON-LD)
   lib/counter.ts          꾸민 인원 읽기·올리기 (한 기기 한 번)
   config/site.ts          사이트 운영 설정 (인원 표시 최소 숫자)
   app/
     api/count/route.ts    꾸민 인원 저장소 연결 (Upstash Redis)
     privacy/page.tsx      개인정보처리방침
+    robots.ts, sitemap.ts 검색엔진 안내
     opengraph-image.png   링크 카드 그림 (twitter-image.png도 같은 그림)
     page.tsx              화면 조립
     layout.tsx            메타데이터, 글꼴

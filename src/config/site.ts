@@ -12,6 +12,10 @@ export const COUNTER_MIN_TO_SHOW = 1;
 
 export const SITE_NAME = "블록핏";
 
+/** 검색 결과와 링크 카드에 나오는 소개 문장 */
+export const SITE_DESCRIPTION =
+  "로블록스 셔츠, 바지, 티셔츠 파일을 올리기 전에 크기와 형식을 검사하고 3D 모형에 입혀보세요. 틀린 파일은 자동으로 고쳐줘요. 로그인 없이 무료, 그림은 어디에도 보내지 않아요.";
+
 /** 친구에게 보여주기를 눌렀을 때 사진과 함께 가는 문장. 뒤에 사이트 주소가 붙는다 */
 export const SHARE_TEXT = "로블록스 옷, 올리기 전에 블록핏에서 먼저 입혀봤어요!";
 

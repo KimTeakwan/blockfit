@@ -12,6 +12,8 @@ import DressedCounter from "@/components/DressedCounter";
 import AutoFixPanel from "@/components/AutoFixPanel";
 import MatStatus from "@/components/MatStatus";
 import TemplateDownloadButtons from "@/components/TemplateDownloadButtons";
+import CompareMethods from "@/components/CompareMethods";
+import StructuredData from "@/components/StructuredData";
 import { DEFAULT_SKIN } from "@/config/avatar";
 import {
   CLOTHING_KINDS,
@@ -29,9 +31,10 @@ import {
   runChecks,
 } from "@/lib/imageChecks";
 import { MAX_DECODE_PIXELS, MAX_FILE_BYTES, OPERATOR } from "@/config/site";
-import { Outfit, isOutfitEmpty } from "@/lib/outfit";
+import { Outfit } from "@/lib/outfit";
 import { fetchDressedCount, reportDressed } from "@/lib/counter";
 import { applyFix, fixedFileName, planFix } from "@/lib/autoFix";
+import { makeSampleOutfit } from "@/lib/sampleOutfit";
 
 /**
  * 3D 모형은 라이브러리가 무거워서 첫 화면과 따로 불러온다.
@@ -64,6 +67,8 @@ interface Loaded {
   fixedFrom: ImageFormat | null;
   /** 너무 커서 열지 않은 파일이면 그 크기. 아니면 null */
   tooLarge: TooLarge | null;
+  /** 블록핏이 만든 샘플 옷인지. 샘플만 입혀본 건 꾸민 인원으로 세지 않는다 */
+  sample: boolean;
 }
 
 type Slots = Record<ClothingKind, Loaded | null>;
@@ -130,7 +135,12 @@ export default function HomePage() {
    * 직접 올린 파일과 자동으로 고친 파일이 같은 길을 타서, 고친 파일도 똑같이 재검사된다.
    */
   const loadIntoSlot = useCallback(
-    async (kind: ClothingKind, file: File, fixedFrom: ImageFormat | null) => {
+    async (
+      kind: ClothingKind,
+      file: File,
+      fixedFrom: ImageFormat | null,
+      sample = false
+    ) => {
       const format = await detectFormat(file);
 
       // 열기 전에 용량과 가로세로부터 본다. 너무 크면 기기가 멈출 수 있어 열지 않는다
@@ -161,6 +171,7 @@ export default function HomePage() {
         objectUrl: URL.createObjectURL(file),
         fixedFrom,
         tooLarge,
+        sample,
       });
     },
     [putSlot]
@@ -179,6 +190,35 @@ export default function HomePage() {
     },
     [active, loadIntoSlot]
   );
+
+  // 컴퓨터에서 복사한 그림(캡처 등)을 Ctrl+V로 붙여넣으면 지금 고른 칸에 올린다
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const file = Array.from(e.clipboardData?.files ?? []).find((f) =>
+        f.type.startsWith("image/")
+      );
+      if (!file) return;
+      e.preventDefault();
+      handleFile(file);
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [handleFile]);
+
+  /** 옷 그림이 없는 사람도 바로 입혀보게 샘플 셔츠와 바지를 한꺼번에 올린다 */
+  const handleSample = useCallback(async () => {
+    setBusy(true);
+    try {
+      const { shirt, pants } = await makeSampleOutfit();
+      await loadIntoSlot("shirt", shirt, null, true);
+      await loadIntoSlot("pants", pants, null, true);
+      setActive("shirt");
+    } catch (err) {
+      console.error("샘플 옷 만들기 실패:", err);
+    } finally {
+      setBusy(false);
+    }
+  }, [loadIntoSlot]);
 
   const handleAutoFix = useCallback(async () => {
     const kind = active;
@@ -238,14 +278,17 @@ export default function HomePage() {
   );
 
   // 모형에 처음으로 옷이 입혀지는 순간 한 번 센다.
-  // 파일만 열어보고 입혀보지 못한 경우(크기가 틀린 셔츠 등)는 세지 않는다.
-  const wearing = !isOutfitEmpty(outfit);
+  // 파일만 열어보고 입혀보지 못한 경우(크기가 틀린 셔츠 등)와
+  // 샘플 옷만 입혀본 경우는 직접 꾸민 게 아니라서 세지 않는다.
+  const wearingOwn = CLOTHING_KINDS.some(
+    ({ kind }) => outfit[kind] && !slots[kind]?.sample
+  );
   useEffect(() => {
-    if (!wearing) return;
+    if (!wearingOwn) return;
     reportDressed().then((count) => {
       if (count !== null) setDressedCount(count);
     });
-  }, [wearing]);
+  }, [wearingOwn]);
 
   const worn = CLOTHING_KINDS.filter((k) => outfit[k.kind]).map((k) => k.label);
   const notWorn = CLOTHING_KINDS.filter(
@@ -270,6 +313,10 @@ export default function HomePage() {
   const current = slots[active];
   const currentImage = current?.image ?? null;
   const currentResults = slotResults[active];
+  const currentPlan = current
+    ? planFix(active, current.format, current.image)
+    : null;
+  const allEmpty = CLOTHING_KINDS.every(({ kind }) => !slots[kind]);
   const selected = CLOTHING_KINDS.find((k) => k.kind === active);
 
   return (
@@ -280,26 +327,24 @@ export default function HomePage() {
       </header>
 
       <main>
+        {/* 휴대폰 첫 화면에 초록 판이 보이도록 소개는 짧게 둔다 */}
         <section className="hero">
           <h1 className="hero-title">올리기 전에 먼저 입혀보세요</h1>
           <p className="hero-text">
             로블록스에 옷을 올릴 때마다 {UPLOAD_INFO.feeRobux} 로벅스가 들어요.
-            크기가 틀린 파일을 올리면 로벅스만 쓰고 옷이 이상하게 나와요.
-            올리기 전에 여기서 먼저 확인하세요.
+            크기가 틀린 파일은 여기서 먼저 걸러내세요.{" "}
+            <a href="#guide">처음이라면 만드는 순서부터</a>
           </p>
-          <p className="hero-text">
-            그림은 어디에도 보내지 않고 이 기기 안에서만 확인해요. 로그인도
-            필요 없어요.
-          </p>
-          <p className="hero-text">
-            <a href="#guide">처음 만들어본다면 옷 만드는 순서부터 보세요</a>
-          </p>
+          <ul className="hero-points" aria-label="블록핏 약속">
+            <li>무료</li>
+            <li>로그인 없음</li>
+            <li>그림은 이 기기 안에서만</li>
+          </ul>
           <DressedCounter count={dressedCount} />
         </section>
 
         <p className="kind-hint">
-          그림으로 만드는 셔츠, 바지, 티셔츠를 칸마다 따로 올려요. 한
-          캐릭터에 셋 다 같이 입힐 수 있어요.
+          셔츠, 바지, 티셔츠를 칸마다 따로 올려요. 셋 다 같이 입힐 수 있어요.
         </p>
         <KindSelector value={active} statuses={statuses} onChange={setActive} />
 
@@ -316,6 +361,11 @@ export default function HomePage() {
                     }
                   : null
               }
+              unopened={
+                current && !currentImage
+                  ? { fileName: current.fileName, tooLarge: !!current.tooLarge }
+                  : null
+              }
               showPanels={showPanels}
               busy={busy}
               onFile={handleFile}
@@ -323,10 +373,14 @@ export default function HomePage() {
 
             <MatStatus
               status={statuses[active]}
-              canAutoFix={
-                !!current &&
-                current.fixedFrom === null &&
-                planFix(active, current.format, current.image).steps.length > 0
+              autoFix={
+                current?.fixedFrom === null && currentPlan
+                  ? currentPlan.steps.length === 0
+                    ? null
+                    : currentPlan.blocked
+                    ? "some"
+                    : "all"
+                  : null
               }
             />
 
@@ -338,13 +392,30 @@ export default function HomePage() {
               </p>
             )}
 
-            {!current && active !== "tshirt" && (
+            {!current && (allEmpty || active !== "tshirt") && (
               <div className="mat-help">
                 <p className="mat-legend">
-                  아직 옷 본이 없다면, 칸 이름이 한글로 적힌 옷 본을 받아서 그
-                  위에 그려보세요.
+                  {allEmpty
+                    ? active === "tshirt"
+                      ? "아직 옷 그림이 없다면, 샘플 옷을 먼저 입혀보세요."
+                      : "아직 옷 그림이 없다면, 샘플 옷을 먼저 입혀보거나 칸 이름이 한글로 적힌 옷 본을 받아서 그려보세요."
+                    : "아직 옷 본이 없다면, 칸 이름이 한글로 적힌 옷 본을 받아서 그 위에 그려보세요."}
                 </p>
-                <TemplateDownloadButtons kinds={[active]} />
+                <div className="mat-actions">
+                  {allEmpty && (
+                    <button
+                      type="button"
+                      className="button-primary"
+                      onClick={handleSample}
+                      disabled={busy}
+                    >
+                      샘플 옷 입혀보기
+                    </button>
+                  )}
+                  {active !== "tshirt" && (
+                    <TemplateDownloadButtons kinds={[active]} />
+                  )}
+                </div>
               </div>
             )}
 
@@ -374,7 +445,9 @@ export default function HomePage() {
                   </button>
                 </div>
                 <p className="mat-legend">
-                  다른 그림으로 바꾸려면 초록 판을 다시 누르세요.
+                  {current.sample
+                    ? "블록핏이 만든 샘플 옷이에요. 초록 판을 눌러 내 옷 그림으로 바꿔보세요."
+                    : "다른 그림으로 바꾸려면 초록 판을 다시 누르세요."}
                 </p>
               </>
             )}
@@ -391,13 +464,13 @@ export default function HomePage() {
               <p className="avatar-note">{avatarNote}</p>
             </section>
 
-            {current && currentResults ? (
+            {current && currentResults && currentPlan ? (
               <>
                 <h2 className="section-title results-anchor" id="results">
                   {selected?.label} 검사 결과
                 </h2>
                 <AutoFixPanel
-                  plan={planFix(active, current.format, current.image)}
+                  plan={currentPlan}
                   fixedFrom={current.fixedFrom}
                   downloadUrl={current.objectUrl}
                   downloadName={current.fileName}
@@ -431,7 +504,9 @@ export default function HomePage() {
           </div>
         </div>
 
+        <CompareMethods />
         <BeginnerGuide />
+        <StructuredData />
       </main>
 
       <footer className="footer">

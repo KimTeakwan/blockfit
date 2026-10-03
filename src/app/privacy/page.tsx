@@ -2,9 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { OPERATOR, PRIVACY_EFFECTIVE_DATE, SITE_NAME } from "@/config/site";
 
+const TITLE = `개인정보처리방침 | ${SITE_NAME}`;
+const DESCRIPTION = `${SITE_NAME}이 어떤 정보를 쓰고, 어떤 정보를 쓰지 않는지 안내해요.`;
+
+// 대표 주소(canonical)는 레이아웃의 "/"를 물려받으므로 이 페이지 것으로 덮어쓴다.
+// 안 덮으면 검색엔진이 이 페이지를 첫 화면의 복사본으로 여긴다.
+// 링크 카드(openGraph)는 덮지 않는다. 덮으면 레이아웃에서 오는 대표 그림까지 빠진다.
 export const metadata: Metadata = {
-  title: `개인정보처리방침 | ${SITE_NAME}`,
-  description: `${SITE_NAME}이 어떤 정보를 쓰고, 어떤 정보를 쓰지 않는지 안내해요.`,
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: "/privacy" },
 };
 
 /**

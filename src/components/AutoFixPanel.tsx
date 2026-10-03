@@ -49,7 +49,17 @@ export default function AutoFixPanel({
     );
   }
 
-  if (plan.steps.length === 0) return null;
+  // 자동으로 고칠 게 없어도, 고칠 수 없는 문제가 있으면 그렇다고 알려준다.
+  // 안 알려주면 "자동으로 고치기" 버튼을 찾아 헤매게 된다.
+  if (plan.steps.length === 0) {
+    if (!plan.blocked) return null;
+    return (
+      <div className="autofix autofix-blocked">
+        <p className="autofix-title">이건 직접 고쳐야 해요</p>
+        <p className="autofix-note">{plan.blocked}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="autofix">

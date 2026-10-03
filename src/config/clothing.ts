@@ -2,8 +2,9 @@
  * 옷 규격에 관한 값은 모두 이 파일에서만 관리한다.
  * 로블록스 규정이 바뀌면 이 파일만 고치면 되도록 한다.
  *
- * 출처: Roblox Creator Hub "Classic clothing" 문서 (2026년 9월 확인)
- * https://create.roblox.com/docs/avatar/classic-clothing
+ * 출처: Roblox Creator Hub 문서 (2026년 10월 확인)
+ * 규격: https://create.roblox.com/docs/avatar/classic-clothing
+ * 비용·조건: https://create.roblox.com/docs/marketplace/marketplace-fees-and-commissions
  */
 
 export type ClothingKind = "shirt" | "pants" | "tshirt";
@@ -34,10 +35,16 @@ export const TEMPLATE_SIZE = { width: 585, height: 559 } as const;
 export const TSHIRT_RECOMMENDED = 512;
 export const TSHIRT_MIN_SHARP = 256;
 
-/** 업로드 비용 안내. 규정이 바뀌면 여기만 고친다 */
+/**
+ * 업로드 비용 안내. 규정이 바뀌면 여기만 고친다.
+ *
+ * feeRobux는 올릴 때마다(검토에 제출할 때마다) 드는 비용이다.
+ * publishFeeRobux는 마켓에 팔려고 내놓을 때 따로 드는 비용(공식 이름: 게시 선지급)이다.
+ */
 export const UPLOAD_INFO = {
   feeRobux: 80,
-  checkedAt: "2026년 9월",
+  publishFeeRobux: 10,
+  checkedAt: "2026년 10월",
   docsUrl: "https://create.roblox.com/docs/avatar/classic-clothing",
 };
 
@@ -56,12 +63,10 @@ export interface Panel {
 /**
  * 템플릿 안에서 각 패널이 있는 위치.
  *
- * ⚠ 검증 필요
- * 패널 크기(128×128, 64×128, 128×64, 64×64)는 공식 문서와 일치하지만,
- * 위치 좌표는 공식 문서에 숫자로 나와 있지 않다.
- * 출시 전에 공식 템플릿 PNG를 검사기에 넣고 "패널 선 보기"를 켜서
- * 템플릿에 인쇄된 칸과 이 선이 정확히 겹치는지 확인해야 한다.
- * (README의 "출시 전 좌표 검증" 참고)
+ * 위치 좌표는 공식 문서에 숫자로 나와 있지 않아서, 공식 템플릿 PNG
+ * (Classic-Clothing-Templates.zip의 Template-Shirts-R15.png, Template-Pants-R15.png)에
+ * 칠해진 칸을 픽셀 단위로 재서 확인했다. 2026년 10월 기준 36칸 모두 정확히 일치한다.
+ * 로블록스가 템플릿을 바꾸면 README의 "좌표 검증" 순서대로 다시 확인한다.
  *
  * 바지는 셔츠와 같은 배치를 쓰고, 팔 자리에 다리가 들어간다.
  * 템플릿 아래 왼쪽 묶음이 오른쪽 팔다리, 아래 오른쪽 묶음이 왼쪽 팔다리다.
