@@ -60,6 +60,18 @@ three.js가 이미 들어가 있어서 3D 파일을 읽는 것 자체는 어렵�
 카톡은 링크 카드를 한동안 저장해둔다. 그림이나 제목을 바꿨는데 예전 카드가 나오면
 카카오 개발자 사이트의 공유 디버거에서 해당 주소의 캐시를 지운다.
 
+## 검색 노출
+
+- `robots.txt`, `sitemap.xml`은 `src/app/robots.ts`, `src/app/sitemap.ts`가 만든다.
+  페이지를 새로 만들면 `sitemap.ts`에 추가한다.
+- 사이트 주소는 `src/lib/siteUrl.ts` 한 곳에서 정한다(링크 카드, robots, sitemap이 같이 쓴다).
+- 첫 화면에는 검색엔진용 데이터(JSON-LD)로 "무료 웹 도구"와 자주 묻는 질문을 넣는다
+  (`StructuredData.tsx`). FAQ는 화면의 "자주 묻는 질문"과 같은 데이터라 둘이 어긋나지 않는다.
+- 개인정보처리방침의 대표 주소(canonical)는 `/privacy`로 따로 둔다.
+  레이아웃의 "/"를 물려받으면 첫 화면의 복사본으로 취급된다.
+- 배포 후 [Google Search Console](https://search.google.com/search-console)과
+  [네이버 서치어드바이저](https://searchadvisor.naver.com)에 사이트를 등록하고 sitemap.xml을 제출한다.
+
 ## 너무 큰 파일
 
 그림을 열기 전에 파일 머리만 읽어서 가로세로를 확인한다(`readDimensions`, PNG·JPG·WebP).
@@ -184,6 +196,7 @@ src/
   lib/shareCard.ts        공유용 사진 만들기와 공유 창
   lib/download.ts         내려받기, 글꼴 준비 공용 함수
   lib/sampleOutfit.ts     샘플 셔츠·바지 그리기
+  lib/siteUrl.ts          사이트 전체 주소 (서버 전용)
   config/avatar.ts        피부색 목록
   components/
     KindSelector.tsx      셔츠·바지·티셔츠 칸 선택과 칸별 상태
@@ -197,11 +210,13 @@ src/
     SkinPicker.tsx        모형 피부색 고르기
     MatStatus.tsx         초록 판 아래 결과 한 줄
     CompareMethods.tsx    확인하는 방법 비교
+    StructuredData.tsx    검색엔진용 데이터 (JSON-LD)
   lib/counter.ts          꾸민 인원 읽기·올리기 (한 기기 한 번)
   config/site.ts          사이트 운영 설정 (인원 표시 최소 숫자)
   app/
     api/count/route.ts    꾸민 인원 저장소 연결 (Upstash Redis)
     privacy/page.tsx      개인정보처리방침
+    robots.ts, sitemap.ts 검색엔진 안내
     opengraph-image.png   링크 카드 그림 (twitter-image.png도 같은 그림)
     page.tsx              화면 조립
     layout.tsx            메타데이터, 글꼴

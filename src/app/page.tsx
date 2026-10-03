@@ -13,6 +13,7 @@ import AutoFixPanel from "@/components/AutoFixPanel";
 import MatStatus from "@/components/MatStatus";
 import TemplateDownloadButtons from "@/components/TemplateDownloadButtons";
 import CompareMethods from "@/components/CompareMethods";
+import StructuredData from "@/components/StructuredData";
 import { DEFAULT_SKIN } from "@/config/avatar";
 import {
   CLOTHING_KINDS,
@@ -505,6 +506,7 @@ export default function HomePage() {
 
         <CompareMethods />
         <BeginnerGuide />
+        <StructuredData />
       </main>
 
       <footer className="footer">
