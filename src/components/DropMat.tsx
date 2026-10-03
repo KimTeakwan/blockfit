@@ -149,7 +149,8 @@ export default function DropMat({
               {busy ? "그림을 여는 중이에요" : "여기를 눌러 옷 그림을 골라요"}
             </p>
             <p className="mat-empty-sub">
-              컴퓨터라면 파일을 끌어다 놓아도 돼요. PNG나 JPG 그림만 돼요.
+              컴퓨터라면 파일을 끌어다 놓거나 Ctrl+V로 붙여넣어도 돼요. PNG나
+              JPG 그림만 돼요.
             </p>
           </div>
         )}
