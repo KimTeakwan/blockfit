@@ -270,6 +270,9 @@ export default function HomePage() {
   const current = slots[active];
   const currentImage = current?.image ?? null;
   const currentResults = slotResults[active];
+  const currentPlan = current
+    ? planFix(active, current.format, current.image)
+    : null;
   const selected = CLOTHING_KINDS.find((k) => k.kind === active);
 
   return (
@@ -316,6 +319,11 @@ export default function HomePage() {
                     }
                   : null
               }
+              unopened={
+                current && !currentImage
+                  ? { fileName: current.fileName, tooLarge: !!current.tooLarge }
+                  : null
+              }
               showPanels={showPanels}
               busy={busy}
               onFile={handleFile}
@@ -323,10 +331,14 @@ export default function HomePage() {
 
             <MatStatus
               status={statuses[active]}
-              canAutoFix={
-                !!current &&
-                current.fixedFrom === null &&
-                planFix(active, current.format, current.image).steps.length > 0
+              autoFix={
+                current?.fixedFrom === null && currentPlan
+                  ? currentPlan.steps.length === 0
+                    ? null
+                    : currentPlan.blocked
+                    ? "some"
+                    : "all"
+                  : null
               }
             />
 
@@ -391,13 +403,13 @@ export default function HomePage() {
               <p className="avatar-note">{avatarNote}</p>
             </section>
 
-            {current && currentResults ? (
+            {current && currentResults && currentPlan ? (
               <>
                 <h2 className="section-title results-anchor" id="results">
                   {selected?.label} 검사 결과
                 </h2>
                 <AutoFixPanel
-                  plan={planFix(active, current.format, current.image)}
+                  plan={currentPlan}
                   fixedFrom={current.fixedFrom}
                   downloadUrl={current.objectUrl}
                   downloadName={current.fileName}

@@ -335,6 +335,11 @@ a {
     -8px 0;
 }
 
+/* 열지 못한 파일. 올라가긴 했다는 걸 실선 테두리로 보여준다 */
+.mat-canvas[data-unopened="true"] {
+  border-style: solid;
+}
+
 .mat-empty {
   text-align: center;
   color: #fff;
@@ -351,6 +356,14 @@ a {
   margin: 0;
   font-size: 0.875rem;
   opacity: 0.8;
+}
+
+/* 긴 파일 이름이 판 밖으로 넘치지 않게 아무 데서나 줄을 바꾼다 */
+.mat-file-name {
+  margin: 0 0 10px;
+  color: var(--chalk);
+  font-weight: 500;
+  overflow-wrap: anywhere;
 }
 
 .mat-image {
@@ -574,6 +587,14 @@ a {
 
 .autofix-done {
   border-color: var(--pass);
+}
+
+.autofix-blocked {
+  border-color: var(--rule);
+}
+
+.autofix-blocked .autofix-note {
+  margin-bottom: 0;
 }
 
 .autofix-title {

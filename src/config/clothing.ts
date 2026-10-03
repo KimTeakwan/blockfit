@@ -2,8 +2,9 @@
  * 옷 규격에 관한 값은 모두 이 파일에서만 관리한다.
  * 로블록스 규정이 바뀌면 이 파일만 고치면 되도록 한다.
  *
- * 출처: Roblox Creator Hub "Classic clothing" 문서 (2026년 9월 확인)
- * https://create.roblox.com/docs/avatar/classic-clothing
+ * 출처: Roblox Creator Hub 문서 (2026년 10월 확인)
+ * 규격: https://create.roblox.com/docs/avatar/classic-clothing
+ * 비용·조건: https://create.roblox.com/docs/marketplace/marketplace-fees-and-commissions
  */
 
 export type ClothingKind = "shirt" | "pants" | "tshirt";
@@ -34,10 +35,16 @@ export const TEMPLATE_SIZE = { width: 585, height: 559 } as const;
 export const TSHIRT_RECOMMENDED = 512;
 export const TSHIRT_MIN_SHARP = 256;
 
-/** 업로드 비용 안내. 규정이 바뀌면 여기만 고친다 */
+/**
+ * 업로드 비용 안내. 규정이 바뀌면 여기만 고친다.
+ *
+ * feeRobux는 올릴 때마다(검토에 제출할 때마다) 드는 비용이다.
+ * publishFeeRobux는 마켓에 팔려고 내놓을 때 따로 드는 비용(공식 이름: 게시 선지급)이다.
+ */
 export const UPLOAD_INFO = {
   feeRobux: 80,
-  checkedAt: "2026년 9월",
+  publishFeeRobux: 10,
+  checkedAt: "2026년 10월",
   docsUrl: "https://create.roblox.com/docs/avatar/classic-clothing",
 };
 

@@ -57,7 +57,7 @@ export default function ManualChecklist() {
       </ul>
       <p className="manual-foot">
         {doneCount === ITEMS.length
-          ? `준비됐어요! 올릴 때마다 ${UPLOAD_INFO.feeRobux} 로벅스가 드니 보호자와 함께 올리세요.`
+          ? `준비됐어요! 올릴 때마다 ${UPLOAD_INFO.feeRobux} 로벅스, 팔려고 내놓을 때 ${UPLOAD_INFO.publishFeeRobux} 로벅스가 더 드니 보호자와 함께 올리세요.`
           : `${ITEMS.length}개 중 ${doneCount}개 확인했어요.`}{" "}
         <a href={UPLOAD_INFO.docsUrl} target="_blank" rel="noreferrer">
           공식 안내 보기
