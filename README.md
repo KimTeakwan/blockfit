@@ -118,13 +118,21 @@ three.js가 이미 들어가 있어서 3D 파일을 읽는 것 자체는 어렵�
 1. Vercel 프로젝트 > **Storage** > **Create Database** > **Upstash for Redis**(Redis)
 2. 무료 요금제로 만들고 이 프로젝트에 **Connect**
 3. 접속 정보(환경변수)가 자동으로 들어간다. **다시 배포(Redeploy)** 해야 적용된다
-4. 로컬에서 확인하려면 `vercel env pull .env.local` (없으면 `.env.local.example` 참고)
+4. 로컬에서 확인하려면 `vercel env pull .env.local`.
+   직접 넣는다면 `KV_REST_API_URL`, `KV_REST_API_TOKEN`
+   (또는 `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)을 `.env.local`에 적는다
 
-## 출시 전 좌표 검증 (필수)
+## 좌표 검증
 
 `src/config/clothing.ts`의 패널 좌표는 공식 문서에 숫자로 나와 있지 않다.
-패널 **크기**는 공식 문서와 일치하지만, **위치**는 직접 확인해야 한다.
 좌표가 틀리면 미리보기와 "비어 있는 패널" 검사가 엉뚱하게 나온다.
+
+**2026년 10월 검증 완료.** 공식 템플릿 zip의 셔츠·바지 PNG에서 칸마다 칠해진 색 영역을
+픽셀 단위로 재서 36칸 모두 x, y, 가로, 세로가 정확히 일치함을 확인했다.
+칸 이름(FRONT/BACK/R/L/U/D/F/B)도 같은 자리이고, 3D 모형의 면 방향도
+three.js 상자 규칙과 맞물린다(오른팔이 -x, 앞면 오른쪽 끝이 모형의 왼쪽 면과 이어짐).
+
+로블록스가 템플릿을 바꾸면 아래 순서로 다시 확인한다.
 
 1. [공식 문서](https://create.roblox.com/docs/avatar/classic-clothing)에서
    템플릿 zip을 받아 압축을 푼다.
