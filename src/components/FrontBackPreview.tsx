@@ -6,15 +6,16 @@ import { BodyPart, Outfit, drawLayers, layersFor } from "@/lib/outfit";
 /**
  * 3D를 쓸 수 없는 기기에서 보여주는 앞모습과 뒷모습.
  *
- * 모형은 얼굴 없는 블록으로 그리고, 고른 피부색을 칠한다.
- * 특정 게임 캐릭터의 모습을 따라 그리지 않고, 옷이 어디에 가는지만 보여준다.
+ * 3D 모형과 같은 모양으로 그린다. 몸은 각진 블록, 머리는 모서리가 둥근 네모(원통을 앞에서 본 모습)이고,
+ * 얼굴은 그리지 않는다. 특정 게임 캐릭터의 얼굴을 따라 그리지 않고, 옷이 어디에 가는지만 보여준다.
  * 옷을 겹치는 순서는 3D 모형과 같은 규칙(lib/outfit.ts)을 쓴다.
  */
 
 type View = "front" | "back";
 
-// 모형 치수. 옷 본 칸 크기(몸통 128, 팔다리 64)를 그대로 단위로 쓴다
-const UNIT = { headW: 96, headH: 64, torso: 128, limbW: 64, limbH: 128 };
+// 모형 치수. 옷 본 칸 크기(몸통 128, 팔다리 64)를 그대로 단위로 쓴다.
+// 머리는 3D 모형과 같은 비율(몸통 너비의 0.6, 모서리 반지름은 머리 높이의 1/6)이다
+const UNIT = { headW: 76, headH: 76, headCorner: 13, torso: 128, limbW: 64, limbH: 128 };
 const FIGURE_W = UNIT.limbW * 2 + UNIT.torso;
 const FIGURE_H = UNIT.headH + UNIT.torso + UNIT.limbH;
 const SCALE = 2;
@@ -33,6 +34,17 @@ interface Rect {
   y: number;
   w: number;
   h: number;
+}
+
+/** 모서리가 둥근 네모 경로. 오래된 브라우저에는 roundRect가 없어서 직접 그린다 */
+function roundedRectPath(ctx: CanvasRenderingContext2D, r: Rect, radius: number) {
+  ctx.beginPath();
+  ctx.moveTo(r.x + radius, r.y);
+  ctx.arcTo(r.x + r.w, r.y, r.x + r.w, r.y + r.h, radius);
+  ctx.arcTo(r.x + r.w, r.y + r.h, r.x, r.y + r.h, radius);
+  ctx.arcTo(r.x, r.y + r.h, r.x, r.y, radius);
+  ctx.arcTo(r.x, r.y, r.x + r.w, r.y, radius);
+  ctx.closePath();
 }
 
 const LAYOUT = (() => {
@@ -86,7 +98,8 @@ function drawFigure(
 
   // 1) 맨몸 모형
   ctx.fillStyle = skin;
-  ctx.fillRect(LAYOUT.head.x, LAYOUT.head.y, LAYOUT.head.w, LAYOUT.head.h);
+  roundedRectPath(ctx, LAYOUT.head, UNIT.headCorner);
+  ctx.fill();
   slots.forEach(({ rect }) => ctx.fillRect(rect.x, rect.y, rect.w, rect.h));
 
   // 2) 옷 겹쳐 입히기. 비어 있는 곳은 아래 옷이나 피부색이 보인다
@@ -97,9 +110,16 @@ function drawFigure(
   // 3) 블록 경계선
   ctx.strokeStyle = darken(skin, 0.7);
   ctx.lineWidth = 1;
-  [LAYOUT.head, ...slots.map((s) => s.rect)].forEach((r) =>
+  slots.forEach(({ rect: r }) =>
     ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1)
   );
+  const head = LAYOUT.head;
+  roundedRectPath(
+    ctx,
+    { x: head.x + 0.5, y: head.y + 0.5, w: head.w - 1, h: head.h - 1 },
+    UNIT.headCorner
+  );
+  ctx.stroke();
 }
 
 export default function FrontBackPreview({

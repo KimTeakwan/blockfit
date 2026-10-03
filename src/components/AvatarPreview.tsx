@@ -22,9 +22,10 @@ import { ShareResult, buildShareCard, shareCard } from "@/lib/shareCard";
  * 옷이 이상하게 나오는 건 대부분 앞면과 옆면이 만나는 이음매라서,
  * 돌려가며 이음매를 확인할 수 있어야 한다.
  *
- * 모형은 얼굴 없는 블록으로만 만든다.
- * 특정 게임 캐릭터의 모습을 따라 그리지 않고, 옷이 몸 어디에 가는지만 보여준다.
- * 상자 비율(몸통 2:2:1, 팔다리 1:2:1)은 옷 본 칸 크기에서 나온 값이다.
+ * 몸통과 팔다리는 각진 상자다. 비율(몸통 2:2:1, 팔다리 1:2:1)은 옷 본 칸 크기에서 나온 값이다.
+ * 옷 그림이 휘어 보이지 않아야 이음매를 확인할 수 있어서 모서리를 둥글리지 않는다.
+ * 머리는 로블록스 기본 아바타처럼 모서리가 둥근 원통으로 만들어 "내 캐릭터"처럼 보이게 하되,
+ * 얼굴은 그리지 않는다. 특정 게임 캐릭터의 얼굴을 따라 그리지 않고, 옷이 몸 어디에 가는지만 보여준다.
  *
  * 칸과 상자 면의 대응:
  *   three.js 상자의 면 순서는 +x, -x, +y, -y, +z, -z 이고, 각 면의 그림은
@@ -39,12 +40,10 @@ import { ShareResult, buildShareCard, shareCard } from "@/lib/shareCard";
  * 3D를 쓸 수 없는 기기에서는 앞/뒤 그림으로 대신 보여준다.
  */
 
-type PartName = BodyPart | "head";
-
 type View = "front" | "right" | "back" | "left";
 
 const PARTS: {
-  name: PartName;
+  name: BodyPart;
   size: [number, number, number];
   pos: [number, number, number];
 }[] = [
@@ -54,8 +53,10 @@ const PARTS: {
   { name: "leftArm", size: [1, 2, 1], pos: [1.5, 3, 0] },
   { name: "rightLeg", size: [1, 2, 1], pos: [-0.5, 1, 0] },
   { name: "leftLeg", size: [1, 2, 1], pos: [0.5, 1, 0] },
-  { name: "head", size: [1.1, 1.1, 1.1], pos: [0, 4.55, 0] },
 ];
+
+/** 머리. 몸통(너비 2) 위에 바로 얹히는, 모서리가 둥근 원통 */
+const HEAD = { radius: 0.6, height: 1.2, corner: 0.2, y: 4.6 };
 
 /** three.js 상자의 면 순서(+x, -x, +y, -y, +z, -z)에 맞춘 칸 이름 */
 const FACE_ORDER: PanelFace[] = ["left", "right", "up", "down", "front", "back"];
@@ -146,14 +147,52 @@ function plainFace(face: PanelFace, base: string): THREE.MeshBasicMaterial {
   });
 }
 
+/**
+ * 머리 모양. 옆에서 본 윤곽(아래 모서리 1/4 원 → 옆면 → 위 모서리 1/4 원)을
+ * 세로축으로 한 바퀴 돌려 만든다.
+ *
+ * 둥근 면은 상자처럼 면마다 밝기를 정할 수 없어서, 꼭짓점마다 방향에 따라
+ * FACE_SHADE를 섞은 밝기를 준다. 그래서 상자들과 같은 빛을 받는 것처럼 보인다.
+ */
+function makeHeadGeometry(): THREE.LatheGeometry {
+  const { radius: r, height, corner: c } = HEAD;
+  const h = height / 2;
+  const STEPS = 8;
+  const points = [new THREE.Vector2(0, -h)];
+  for (let i = 0; i <= STEPS; i++) {
+    const a = -Math.PI / 2 + (i / STEPS) * (Math.PI / 2);
+    points.push(new THREE.Vector2(r - c + c * Math.cos(a), -h + c + c * Math.sin(a)));
+  }
+  for (let i = 0; i <= STEPS; i++) {
+    const a = (i / STEPS) * (Math.PI / 2);
+    points.push(new THREE.Vector2(r - c + c * Math.cos(a), h - c + c * Math.sin(a)));
+  }
+  points.push(new THREE.Vector2(0, h));
+
+  const geometry = new THREE.LatheGeometry(points, 48);
+  const normals = geometry.getAttribute("normal");
+  const colors = new Float32Array(normals.count * 3);
+  for (let i = 0; i < normals.count; i++) {
+    const nx = normals.getX(i);
+    const ny = normals.getY(i);
+    const nz = normals.getZ(i);
+    // 방향 성분의 제곱은 합이 1이라, 면 밝기를 방향 비율대로 섞는 가중치로 쓸 수 있다
+    const shade =
+      nx * nx * FACE_SHADE.left +
+      ny * ny * (ny > 0 ? FACE_SHADE.up : FACE_SHADE.down) +
+      nz * nz * (nz > 0 ? FACE_SHADE.front : FACE_SHADE.back);
+    colors.set([shade, shade, shade], i * 3);
+  }
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  return geometry;
+}
+
 function materialsFor(
-  part: PartName,
+  part: BodyPart,
   outfit: Outfit,
   skin: string
 ): THREE.MeshBasicMaterial[] {
   return FACE_ORDER.map((face) => {
-    if (part === "head") return plainFace(face, skin);
-
     const layers = layersFor(part, face, outfit);
     if (layers.length === 0) return plainFace(face, skin);
 
@@ -183,7 +222,8 @@ interface Motion {
 }
 
 interface Stage {
-  meshes: Record<PartName, PartMesh>;
+  meshes: Record<BodyPart, PartMesh>;
+  headMaterial: THREE.MeshBasicMaterial;
   edgeMaterial: THREE.LineBasicMaterial;
   motion: Motion;
   goTo: (view: View) => void;
@@ -256,7 +296,17 @@ export default function AvatarPreview({ outfit, skin, onSkinChange }: Props) {
       color: edgeColorFor(DEFAULT_SKIN),
     });
     const edgeGeometries: THREE.EdgesGeometry[] = [];
-    const meshes = {} as Record<PartName, PartMesh>;
+    const meshes = {} as Record<BodyPart, PartMesh>;
+
+    // 머리는 옷을 입지 않으니 피부색 하나만 칠한다. 둥근 면이라 모서리선은 긋지 않는다
+    const headGeometry = makeHeadGeometry();
+    const headMaterial = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(DEFAULT_SKIN),
+      vertexColors: true,
+    });
+    const head = new THREE.Mesh(headGeometry, headMaterial);
+    head.position.set(0, HEAD.y, 0);
+    figure.add(head);
 
     for (const part of PARTS) {
       const geometry = new THREE.BoxGeometry(...part.size);
@@ -327,7 +377,14 @@ export default function AvatarPreview({ outfit, skin, onSkinChange }: Props) {
       return out;
     };
 
-    stageRef.current = { meshes, edgeMaterial, motion, goTo, snapshot };
+    stageRef.current = {
+      meshes,
+      headMaterial,
+      edgeMaterial,
+      motion,
+      goTo,
+      snapshot,
+    };
 
     const observer = new ResizeObserver(resize);
     observer.observe(host);
@@ -399,6 +456,8 @@ export default function AvatarPreview({ outfit, skin, onSkinChange }: Props) {
       });
       edgeGeometries.forEach((g) => g.dispose());
       edgeMaterial.dispose();
+      headGeometry.dispose();
+      headMaterial.dispose();
       renderer.dispose();
       if (canvas.parentElement === host) host.removeChild(canvas);
       stageRef.current = null;
@@ -416,6 +475,7 @@ export default function AvatarPreview({ outfit, skin, onSkinChange }: Props) {
       mesh.material = materialsFor(part.name, outfit, skin);
     }
     stage.edgeMaterial.color.copy(edgeColorFor(skin));
+    stage.headMaterial.color.set(skin);
   }, [outfit, skin]);
 
   // 새 옷이 입혀지면 앞모습으로 돌려서 보여준다. 피부색만 바꿀 때는 돌리지 않는다
